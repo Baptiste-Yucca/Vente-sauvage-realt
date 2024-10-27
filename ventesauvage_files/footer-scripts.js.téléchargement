@@ -1,0 +1,125 @@
+jQuery(function($){function getWindowData(dataObj){if(window[dataObj]){return window[dataObj]}
+return{}}
+handleAccordionToggles()
+toggleModals()
+fadeInLazyImgs()
+setTimeout(()=>{fadeInLazyImgs()},500)
+initGoogleTranslate()
+bindLanguageIconDesktop()
+bindLanguageIconMobile()
+function initGoogleTranslate(){setTimeout(()=>{if(window.origin.indexOf("wp-admin")>-1||!google?.translate||typeof google.translate.TranslateElement!=='function'){console.log("Skipping Google Translate init (wp-admin or undefined google.translate or google.translate.TranslateElement not a function).")
+return}
+google.translate.TranslateElement({pageLanguage:'en'},'google_translate_element');},700)
+bindGTranslateBar()}
+function bindLanguageIconDesktop(){const $icon=$('.google-translate-wrapper.desktop .google-translate-icon-button')
+const $gtranslate=$('#google_translate_element')
+if(!$icon.length||!$gtranslate.length){console.log("bindLanguageIconMobile bailing (!$icon.length || !$gtranslate.length): ",$icon,$gtranslate);return}
+$icon.on('click',function(){$icon.after($gtranslate)
+$gtranslate.toggleClass('show');})}
+function bindLanguageIconMobile(){const $icon=$('.google-translate-wrapper.mobile .google-translate-icon-button')
+const $gtranslate=$('#google_translate_element')
+if(!$icon.length||!$gtranslate.length){console.log("bindLanguageIconMobile bailing (!$icon.length || !$gtranslate.length): ",$icon,$gtranslate);return}
+const $container=$icon.parents('.container.clearfix').first()
+$icon.on('click',function(){$container.after($gtranslate)
+$gtranslate.toggleClass('show')})}
+function bindGTranslateBar(){console.log("bindGTranslateBar loaded.");initBarMutationObserver()
+function bodyMutCallback(mutationsList,observer){for(const mutation of mutationsList){if(!mutation.addedNodes||mutation.type!=='childList'){return;}
+mutation.addedNodes.forEach(node=>{if(node.nodeName==='DIV'&&node.className==='skiptranslate'){initBarMutationObserver()}})}}
+const bodyMutConfig={childList:true,}
+const bodyObserver=new MutationObserver(bodyMutCallback)
+bodyObserver.observe(document.body,bodyMutConfig)
+function initBarMutationObserver(){console.log("initBarMutationObserver running... ");const $bar=$('body > .skiptranslate:first-child').first()
+console.log("initBarMutationObserver has $bar: ",$bar);if(!$bar.length){console.log("bindGTranslateBar $bar not found. ");return}
+if($bar.css('display')==='none'){$('#top-header').css('top','')
+$('#main-header').css('top','44px')}else{console.log("bindGTranslateBar window.innerWidth: ",window.innerWidth);$('#top-header').css('top','39px')
+$('#main-header').css('top',window.innerWidth<981?'38px !important':'84px')}
+function barMutCallback(mutationsList,observer){console.log(" barMutCallback detected w/ mutationsList: ",mutationsList);if($bar.css('display')==='none'){console.log("bindGTranslateBar $bar display: none. ");$('#top-header').css('top','')
+$('#main-header').attr('style','top: 44px')}else{console.log("bindGTranslateBar $bar display: *something else*. ");$('#top-header').css('top','39px')
+$('#main-header').attr('style',window.innerWidth<981?'top: 38px !important':'top: 84px')}}
+const barMutConfig={attributes:true,}
+const barObserver=new MutationObserver(barMutCallback)
+const barNode=$bar.get(0)
+barObserver.observe(barNode,barMutConfig)}}
+function fadeInLazyImgs(){const $imgs=$('#et-main-area img[loading="lazy"]')
+$imgs.each(function(){const $this=$(this)
+const img=$this.get(0)
+if(isImageOk(img)){$this.addClass("loaded")}})
+$imgs.on("load",function(){$(this).addClass("loaded")})}
+function isImageOk(img){if(!img.complete){return false}
+if(img.naturalWidth===0){return false}
+return true}
+function handleWooCartLink(){var $cart=$(".et-cart-info")
+if(Boolean($cart)){$cartSpan=$cart.find("span")
+var text=$cartSpan.text().trim()
+$cartSpan.text("")
+var words=text.split(" ")
+var count=0
+for(var i=0;i<words.length;i++){count=parseInt(words[i],10)
+if(!Number.isNaN(count)){break}}
+var count=count.toString()
+$cartSpan.after(`<span class="cart-count">${count}</span>`)
+var $mobileSecondaryNav=$("#main-header .wpml-ls-legacy-dropdown")
+$cart.clone().appendTo($mobileSecondaryNav)}}
+function handleAccordionToggles(){$(".et_pb_accordion .et_pb_toggle_open").addClass("et_pb_toggle_close").removeClass("et_pb_toggle_open")
+$(".et_pb_accordion .et_pb_toggle").click(function(){$this=$(this)
+setTimeout(function(){$this.closest(".et_pb_accordion").removeClass("et_pb_accordion_toggling")},700)})
+$(".et_pb_toggle_title").click(function(){var $toggle=$(this).closest(".et_pb_toggle")
+if(!$toggle.hasClass("et_pb_accordion_toggling")){var $accordion=$toggle.closest(".et_pb_accordion")
+if($toggle.hasClass("et_pb_toggle_open")){$accordion.addClass("et_pb_accordion_toggling")
+$toggle.find(".et_pb_toggle_content").slideToggle(700,function(){$toggle.removeClass("et_pb_toggle_open").addClass("et_pb_toggle_close")})}
+setTimeout(function(){$accordion.removeClass("et_pb_accordion_toggling")},750)}})}
+function toggleModals(){const acfFields=getWindowData("acfFields")
+$.each(acfFields,function(i,val){let outlinkUrl=val["outlink_url"]
+bindClickHandlersModals(outlinkUrl)})}
+function bindClickHandlersModals(outlinkUrl){const $modalWrapper=$("#modal-overlay")
+const $anchors=$("body").find(`a[href="${outlinkUrl}"]`)
+let $modal=$modalWrapper.find(`div[data-outlink-url="${outlinkUrl}"]`)
+$anchors.on("click",function(e){e.preventDefault()
+let $this=$(this)
+let externalLink=$this.attr("href")
+let $goButton=$modal.find("a.go-button")
+let $tos=$modal.find(".tos-checkbox")
+$tos.on("change",function(){if($tos.prop("checked")){$goButton.removeClass("disabled")}else{$goButton.addClass("disabled")}})
+if(externalLink.length>0){$goButton.prop("href",externalLink)}
+$modalWrapper.addClass("active")
+$modal.addClass("active")
+let $closeButton=$modal.find("button.modal-close")
+$closeButton.on("click",function(e){$modalWrapper.removeClass("active")
+$modal.removeClass("active")})
+$(document).keyup(function(e){if(e.keyCode===27){$modalWrapper.removeClass("active")
+$modal.removeClass("active")
+$anchors.focus()}})})}
+function getAvailableLanguages(){let availableLanguages=[]
+Localize.getAvailableLanguages(function(err,languages){if(err)return console.log(err)
+availableLanguages=languages})
+return availableLanguages}
+function buildCustomLanguageSwitcher(){let availableLangs=getAvailableLanguages()
+let currentLanguage=Localize.getLanguage()
+let $customLangSwitcher=$("<div id='custom-localize-language-switcher' class='menu-item menu-item-has-children'></div>")
+let $activeLang=$("<span id='custom-localize-active-lang'></span>")
+$activeLang.text(currentLanguage)
+$customLangSwitcher.append($activeLang)
+let $langList=$("<ul id='custom-localize-lang-list' class='sub-menu'></ul>")
+$.each(availableLangs,function(i,val){let $langItem=$("<li></li>")
+let $langLink=$(`<a href='javascript:Localize.setLanguage("${val.code}")' class='lang-switcher-link'>${val.name}</a>`)
+$langLink.attr("data-lang",val.code)
+$langLink.text(val.name)
+$langItem.append($langLink)
+$langList.append($langItem)})
+$customLangSwitcher.append($langList)
+$("body #et-secondary-menu #et-secondary-nav").append($customLangSwitcher)}
+function buildMobileLanguageSwitcher(){let availableLangs=getAvailableLanguages()
+let currentLanguage=Localize.getLanguage()
+let $customLangSwitcher=$("<div id='custom-localize-language-switcher-mobile' class='menu-item menu-item-has-children'></div>")
+let $activeLang=$("<span id='custom-localize-active-lang-mobile'></span>")
+$activeLang.text(currentLanguage)
+$customLangSwitcher.append($activeLang)
+let $langList=$("<ul id='custom-localize-lang-list-mobile' class='sub-menu'></ul>")
+$.each(availableLangs,function(i,val){let $langItem=$("<li></li>")
+let $langLink=$(`<a href='javascript:Localize.setLanguage("${val.code}")' class='lang-switcher-link'>${val.name}</a>`)
+$langLink.attr("data-lang",val.code)
+$langLink.text(val.name)
+$langItem.append($langLink)
+$langList.append($langItem)})
+$customLangSwitcher.append($langList)
+$("body #et_mobile_nav_menu").before($customLangSwitcher)}});jQuery(function($){$(document).ready(function(){$("body ul.et_mobile_menu li.menu-item-has-children, body ul.et_mobile_menu  li.page_item_has_children").append('<button type="button" class="mobile-toggle"><i class="fa-solid fa-caret-down"></i></button>');$('ul.et_mobile_menu li.menu-item-has-children > button, ul.et_mobile_menu li.page_item_has_children > button').on('click',function(e){e.preventDefault();$this=$(this);$this.parent('li').toggleClass('dt-open');$this.parent('li').find('ul.children').first().toggleClass('visible');$this.parent('li').find('ul.sub-menu').first().toggleClass('visible');});$('.mobile-toggle').on('mouseover',function(){$(this).parent().addClass('is-hover');}).on('mouseout',function(){$(this).parent().removeClass('is-hover');})});});
